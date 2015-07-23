@@ -1,6 +1,5 @@
 var dumperURL = 'https://localhost:1339/';
 var globalDumpSequenceNumber = 0;
-var START_INDEX = 0;
 
 function dumpData(filename, contents) {
   var req = new XMLHttpRequest();
@@ -12,22 +11,16 @@ function dumpData(filename, contents) {
 // Make Facebook obtain 1000 messages at once.
 var oldHTTPSend = XMLHttpRequest.prototype.send;
 XMLHttpRequest.prototype.send = function() {
+  console.log('arguments', arguments);
   if (arguments.length === 1) {
-    var match = /messages\[user_ids\]\[[0-9]*\]\[limit\]=([0-9]*)/.exec(arguments[0]);
+    var postData = arguments[0];
+    var match = /messages\[user_ids\]\[[0-9]*\]\[limit\]=([0-9]*)/.exec(postData);
     if (match) {
       var matchStr = match[0];
       var comps = matchStr.split('=');
       comps[1] = 1000;
-      arguments[0] = arguments[0].replace(matchStr, comps.join('='));
+      arguments[0] = postData.replace(matchStr, comps.join('='));
       console.log('replace number of messages!');
-    }
-    var match = /messages\[user_ids\]\[[0-9]*\]\[offset\]=([0-9]*)/.exec(arguments[0]);
-    if (match) {
-      var matchStr = match[0];
-      var comps = matchStr.split('=');
-      comps[1] = START_INDEX;
-      arguments[0] = arguments[0].replace(matchStr, comps.join('='));
-      console.log('replace start index!');
     }
   }
   oldHTTPSend.apply(this, arguments);
@@ -50,6 +43,5 @@ function scrollUpInChat() {
   var messenger = document.getElementById('pagelet_web_messenger');
   var chatArea = messenger.getElementsByClassName('uiScrollableAreaWrap')[1];
   chatArea.scrollTop = 0;
-  chatArea.style.visibility = 'hidden';
 }
 setInterval(scrollUpInChat, 1000);
