@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,10 +18,13 @@ type Action struct {
 	Author            string       `json:"author"`
 	Timestamp         int64        `json:"timestamp"`
 	TimestampDatetime string       `json:"timestamp_datetime"`
+	ThreadID          string       `json:"thread_id"`
 	Body              string       `json:"body"`
 	HTMLBody          string       `json:"html_body"`
 	HasAttachment     bool         `json:"has_attachment"`
 	Attachments       []Attachment `json:"attachments"`
+
+	AuthorName string `json:"author_full_name"`
 }
 
 type Attachment struct {
@@ -51,44 +55,88 @@ func (a ActionList) Swap(i, j int) {
 	a[j], a[i] = a[i], a[j]
 }
 
+func commandLineInput(prompt string) string {
+	fmt.Print(prompt)
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	return scanner.Text()
+}
+
+func fillOutUsernames(actions []Action) {
+	idToName := map[string]string{}
+	for i, action := range actions {
+		if name, ok := idToName[action.Author]; ok {
+			action.AuthorName = name
+		} else {
+			input := commandLineInput("Name for " + action.Author + ": ")
+			idToName[action.Author] = input
+			action.AuthorName = input
+		}
+		actions[i] = action
+	}
+}
+
+func filterThreadId(allActions []Action) []Action {
+	threadId := commandLineInput("Thread ID: ")
+	newActions := make([]Action, 0, len(allActions))
+	for _, action := range allActions {
+		if action.ThreadID == threadId {
+			newActions = append(newActions, action)
+		}
+	}
+	return newActions
+}
+
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatal("Usage: data_processor <directory path>")
+	if len(os.Args) != 3 {
+		log.Fatal("Usage: data_processor <directory path> <processed_out.json>")
 	}
 	dir, err := os.Open(os.Args[1])
 	if err != nil {
-		log.Fatal("Failed to open directory:", err)
+		log.Fatal("Failed to open directory: ", err)
 	}
 	defer dir.Close()
 	names, err := dir.Readdirnames(-1)
 	if err != nil {
-		log.Fatal("Cannot read directory:", err)
+		log.Fatal("Cannot read directory: ", err)
 	}
 	allActions := make([]Action, 0)
 	for _, name := range names {
 		p := filepath.Join(os.Args[1], name)
 		contents, err := ioutil.ReadFile(p)
 		if err != nil {
-			log.Print("Failed to read: "+p+":", err)
+			log.Print("Failed to read: "+p+": ", err)
 			continue
 		}
 		actions, err := parseActions(contents)
 		if err != nil {
-			log.Print("Failed to parse: "+p+":", err)
+			log.Print("Failed to parse: "+p+": ", err)
 			continue
 		}
 		allActions = append(allActions, actions...)
 	}
 	sort.Sort(ActionList(allActions))
-	fmt.Println("got", len(allActions), "actions")
+	log.Print("got ", len(allActions), " actions")
 	allActions = removeDuplicates(allActions)
-	fmt.Println("got", len(allActions), "unique actions")
+	log.Print("got ", len(allActions), " unique actions")
+	allActions = filterThreadId(allActions)
+	log.Print("got ", len(allActions), " in thread")
+	fillOutUsernames(allActions)
+	
+	data, err := json.Marshal(allActions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := ioutil.WriteFile(os.Args[2], data, 0777); err != nil {
+		log.Fatal(err)
+	}
+	log.Print("Wrote output to: " + os.Args[2])
 }
 
 func parseActions(data []byte) ([]Action, error) {
 	index := strings.Index(string(data), "{")
 	if index < 0 {
-		return nil, errors.New("no { in data")
+		return nil, errors.New("no JSON object in data")
 	}
 	jsonData := data[index:]
 	var page ThreadInfoPage
