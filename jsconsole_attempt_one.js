@@ -13,21 +13,17 @@ function dumpData(filename, contents) {
 
 var oldHTTPOpen = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function(method, url, async) {
-  oldHTTPOpen.call(this, method, url, async);
+  oldHTTPOpen.apply(this, arguments);
   if (/thread_info.php$/.exec(url)) {
     var seq = ++globalDumpSequenceNumber;
     this.addEventListener('load', function() {
       var responseData = this.response.toString();
       dumpData('thread_info_' + seq + '.json', responseData);
-      if (scrollUpTimeout) {
-        clearTimeout(scrollUpTimeout);
-      }
-      scrollUpInChat();
     }.bind(this));
   }
 };
 
-function scrollUpInChat() {
+setInterval(function() {
   // Make sure message elements don't fill up the browser.
   // var messageGroups = document.getElementsByClassName('webMessengerMessageGroup');
   // var groupsArray = [];
@@ -44,9 +40,4 @@ function scrollUpInChat() {
   var moreLink = chatArea.getElementsByClassName('uiMorePagerPrimary')[1];
   moreLink.click();
   chatArea.scrollTop = 0;
-  
-  scrollUpTimeout = setTimeout(scrollUpInChat, 10000);
-}
-
-scrollUpInChat();
-setTimeout(scrollUpInChat, 1000);
+}, 1000);
