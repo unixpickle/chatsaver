@@ -27,6 +27,14 @@ type Action struct {
 	AuthorName string `json:"author_full_name"`
 }
 
+type OutputAction struct {
+	Author        string       `json:"author"`
+	Body          string       `json:"body"`
+	Timestamp     int64        `json:"timestamp"`
+	HasAttachment bool         `json:"has_attachment"`
+	Attachments   []Attachment `json:"attachments"`
+}
+
 type Attachment struct {
 	Type       string `json:"attach_type"`
 	URL        string `json:"url"`
@@ -93,7 +101,7 @@ func filterThreadId(allActions []Action) []Action {
 			return newActions
 		}
 	}
-	
+
 	return allActions
 }
 
@@ -132,8 +140,13 @@ func main() {
 	allActions = filterThreadId(allActions)
 	log.Print("got ", len(allActions), " in thread")
 	fillOutUsernames(allActions)
-	
-	data, err := json.Marshal(allActions)
+
+	outputActions := make([]OutputAction, len(allActions))
+	for i, act := range allActions {
+		outputActions[i] = OutputAction{act.AuthorName, act.Body, act.Timestamp, act.HasAttachment,
+			act.Attachments}
+	}
+	data, err := json.Marshal(outputActions)
 	if err != nil {
 		log.Fatal(err)
 	}
