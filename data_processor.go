@@ -77,14 +77,24 @@ func fillOutUsernames(actions []Action) {
 }
 
 func filterThreadId(allActions []Action) []Action {
-	threadId := commandLineInput("Thread ID: ")
-	newActions := make([]Action, 0, len(allActions))
-	for _, action := range allActions {
-		if action.ThreadID == threadId {
-			newActions = append(newActions, action)
+	// If all the thread IDs are the same, we don't need to ask.
+	var threadId string
+	for i, action := range allActions {
+		if i == 0 {
+			threadId = action.ThreadID
+		} else if threadId != action.ThreadID {
+			threadId := commandLineInput("Thread ID: ")
+			newActions := make([]Action, 0, len(allActions))
+			for _, action := range allActions {
+				if action.ThreadID == threadId {
+					newActions = append(newActions, action)
+				}
+			}
+			return newActions
 		}
 	}
-	return newActions
+	
+	return allActions
 }
 
 func main() {
