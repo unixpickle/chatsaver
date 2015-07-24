@@ -1,0 +1,48 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+#messages {
+  display: inline-block;
+  width: 600px;
+  text-align: left;
+}
+
+.message {
+  margin: 10px 0;
+  padding: 5px;
+  background-color: #f0f0f0;
+}
+
+.author {
+  display: block;
+  float: left;
+  font-weight: bolder;
+}
+
+.date {
+  display: block;
+  float: right;
+  font-style: italic;
+}
+
+.body {
+  display: block;
+  clear: both;
+  padding-top: 1px;
+  font-size: 1.1em;
+}
+
+.attachments-label {
+  display: block;
+  text-decoration: underline;
+}
+
+.attachment {
+  display: block;
+}
+
+.error {
+  color: red;
+}
