@@ -39,6 +39,7 @@ type Attachment struct {
 	Type       string `json:"attach_type"`
 	URL        string `json:"url"`
 	PreviewURL string `json:"preview_url"`
+	HighresURL string `json:"hires_url"`
 }
 
 type Payload struct {
@@ -107,7 +108,7 @@ func filterThreadId(allActions []Action) []Action {
 
 func main() {
 	if len(os.Args) != 3 {
-		log.Fatal("Usage: data_processor <directory path> <processed_out.json>")
+		log.Fatal("Usage: data_processor <directory path> <processed_out.js>")
 	}
 	dir, err := os.Open(os.Args[1])
 	if err != nil {
@@ -150,6 +151,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	data = append([]byte("window.allFacebookMessages = "), append(data, ';')...)
 	if err := ioutil.WriteFile(os.Args[2], data, 0777); err != nil {
 		log.Fatal(err)
 	}
