@@ -1,6 +1,10 @@
 # chatsaver
 
-This program will scrape Facebook's website to make it possible to cache your full chat history with a given user.
+This is a suite of tools for archiving and processing large chat histories on Facebook Messenger.
+
+# Chrome Extension
+
+The [chrome_ext](chrome_ext) directory is an unpacked Chrome Extension for using the ["hijack first request" approach](#the-hijack-first-request-approach). I suggest you use this, since it is much easier than manually injecting scripts and running Go programs. You can install it like you would install any [unpacked Chrome extension](https://developer.chrome.com/extensions/getstarted#unpacked).
 
 # The "scroll and intercept" approach
 
