@@ -1,19 +1,13 @@
 <!doctype html>
 <html>
-  <body>
-    <label style="margin: 0; padding: 0">Output path:</label>
+  <body style="text-align: center; width: 280px;">
+    <button id="toggle-button" style="margin-top: 10px">Start</button>
     <br>
-    <input id="output-path"
-           style="width: 200px; outline: 0; margin-top: 5px; padding: 3px;">
-    <br>
-    <button style="float: right;
-                   margin-top: 10px;"
-            id="toggle-button">Start</button>
-    <br>
-    <p style="padding-top: 10px">
-      While recording, scroll to the top of a Messenger chat
-      enough for Messenger to load more messages. This will
-      trigger the plugin to start fetching messages.
+    <p style="padding-top: 10px; text-align: left">
+      After you hit 'Start', scroll up in a chat enough for
+      Messenger to fetch the next page of messages. This will
+      trigger a boatload of file downloads, each a JSON file
+      containing some message data.
     </p>
     <script type="text/javascript" src="popup.js"></script>
 </body>

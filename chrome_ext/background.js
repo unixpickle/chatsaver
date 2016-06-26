@@ -10,3 +10,12 @@ chrome.runtime.onInstalled.addListener(function() {
     }]);
   });
 });
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  try {
+    chrome.downloads.download(request);
+    sendResponse('worked');
+  } catch (e) {
+    sendResponse(e.toString());
+  }
+});

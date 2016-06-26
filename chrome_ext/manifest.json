@@ -15,6 +15,10 @@
     "persistent": false
   },
   "permissions": [
-    "declarativeContent", "tabs", "https://www.messenger.com/*"
-  ]
+    "declarativeContent", "tabs", "https://www.messenger.com/*", "downloads"
+  ],
+  "web_accessible_resources": ["http_hook.js"],
+  "externally_connectable": {
+    "matches": ["https://www.messenger.com/*"]
+  }
 }

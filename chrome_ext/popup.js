@@ -14,7 +14,6 @@ chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     if (recording) {
       document.getElementById('toggle-button').innerHTML = 'Stop';
     }
-    document.getElementById('output-path').value = response.path;
   });
 });
 
@@ -30,8 +29,7 @@ document.getElementById('toggle-button').onclick = function() {
 };
 
 function startRecording() {
-  savePath = document.getElementById('output-path').value;
-  var startMsg = {action: 'start', path: savePath};
+  var startMsg = {action: 'start'};
   if (!runningTask) {
     runningTask = true;
     chrome.tabs.executeScript(mainTab.id, {file: 'inject.js'}, function() {
