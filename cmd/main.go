@@ -8,13 +8,10 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/howeyc/gopass"
 	"github.com/unixpickle/fbmsgr"
 )
-
-const BufferSize = 499
 
 func main() {
 	fmt.Print("Email/username: ")
@@ -41,35 +38,23 @@ func main() {
 	file := readLine()
 
 	fmt.Println("Downloading messages...")
-	var lastTime time.Time
 	var actions []map[string]interface{}
-	seenIDs := map[string]bool{}
-	for {
-		listing, err := sess.ActionLog(fbid, lastTime, len(actions), BufferSize)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to list messages:", err)
-			os.Exit(1)
-		}
 
-		// As of now, there is always a duplicate at the end of
-		// every buffer--one message is shared between buffers.
-		actObjs := make([]map[string]interface{}, 0, len(listing))
-		for i := 0; i < len(listing); i++ {
-			x := listing[i]
-			if !seenIDs[x.MessageID()] {
-				seenIDs[x.MessageID()] = true
-				actObjs = append(actObjs, x.RawFields())
-			}
-		}
-
-		actions = append(actObjs, actions...)
-		lastTime = listing[0].ActionTime()
+	actionChan, errChan := sess.FullActionLog(fbid, nil)
+	for action := range actionChan {
+		actions = append(actions, action.RawFields())
 		fmt.Printf("\rGot %d actions...", len(actions))
-		if len(listing) <= 1 {
-			break
-		}
 	}
 	fmt.Printf("\rTotal of %d actions...\n", len(actions))
+
+	if err := <-errChan; err != nil {
+		fmt.Fprintln(os.Stderr, "Fetch error:", err)
+	}
+
+	// Sort the actions chronologically.
+	for i := 0; i < len(actions)/2; i++ {
+		actions[i], actions[len(actions)-(i+1)] = actions[len(actions)-(i+1)], actions[i]
+	}
 
 	encoded, err := json.MarshalIndent(actions, "", "  ")
 	if err != nil {
