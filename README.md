@@ -4,37 +4,11 @@ This is a suite of tools for archiving and processing large chat histories on Fa
 
 # Chrome Extension
 
-The [chrome_ext](chrome_ext) directory is an unpacked Chrome Extension for using the ["hijack first request" approach](#the-hijack-first-request-approach). I suggest you use this, since it is much easier than manually injecting scripts and running Go programs. You can install it like you would install any [unpacked Chrome extension](https://developer.chrome.com/extensions/getstarted#unpacked).
+The [chrome_ext](chrome_ext) directory is an unpacked Chrome Extension for using the ["hijack first request" approach](primitive_attempts/README.md#the-hijack-first-request-approach). I suggest you use this, since it is much easier than manually injecting scripts and running Go programs. You can install it like you would install any [unpacked Chrome extension](https://developer.chrome.com/extensions/getstarted#unpacked).
 
-# The "scroll and intercept" approach
+# Primitive Attempts
 
-Intuitively, it seems that the simplest way to cache a Facebook conversation is to scroll to the top of the chat. When you scroll up in a chat, Facebook's client-side JavaScript code sends a request to its server to download older messages. By intercepting the responses to these requests, it is possible to sniff the entire Facebook conversation as the users scrolls through it.
-
-However, it is not very fun to scroll up through 30,000+ messages on Facebook Chat--especially since Facebook's client-side code only downloads 80 messages at a time. Luckily, it is possible to automate this task.
-
-The script [scroll_and_intercept.js](scroll_and_intercept.js) periodically scrolls to the top of a chat and intercepts all of the Facebook's AJAX traffic. To use it, you must follow a number of convoluted steps. First, you must install the Chrome plugin "Disable Content-Security-Policy", making it possible to send AJAX requests to your instance of *data_dumper.go* from *facebook.com*. Next, you must setup [data_dumper.go](data_dumper.go) to run behind an HTTPS reverse-proxy. Finally, you must put the URL of your data_dumper instance into [scroll_and_intercept.js](scroll_and_intercept.js) and paste it into your JavaScript console while navigated to a Facebook conversation page.
-
-A chat of about 38,000 messages took several hours for me to archive using this approach. Throughout the process, the Chrome tab used 100% CPU. In the end, I was receiving about 4 to 5 page updates per minute, meaning approximately 360 messages per minute.
-
-I suspect that most of the overhead comes from the browser choking on thousands of DOM elements. The network activity was certainly not the strain, since the data itself added up to the whereabouts of 40MB.
-
-# The "hijack first request" approach
-
-The "scroll and intercept" approach is slow and extremely clunky. While the "hijack first request" approach is still a mess, it runs in minutes instead of hours. Using this approach, I was able to archive 35,000 messages in roughly a minute.
-
-But how does it work? The idea is somewhat like "scroll and intercept", but the user only has to scroll once.
-
-Facebook's client-side code does some sort of voodoo to generate each HTTP request it makes. This voodoo includes looking up user IDs and generating some sort of weird token. Ultimately, all of this voodoo is POSTed to `https://www.facebook.com/ajax/mercury/thread_info.php`. Usually, requests for `thread_info.php` are made periodically as the user scrolls up. Interestingly, most of the voodoo stays the same between requests to `thread_info.php`; the important things that change are the "offset" and "limit" parameters. Using what I call the "hijack first request" approach, the user injects JavaScript code into the page which intercepts the first request to `thread_info.php`. After intercepting this request and reading the POST parameters, it can continually increment the "offset" parameter of the original request until it has obtained the entire chat thread entirely independently of Facebook's web UI.
-
-This approach requires most of the same things as the "scroll and intercept" approach. The only difference is that you should use the code in [hijack_first_request.js](hijack_first_request.js).
-
-# A browser-less approach
-
-I have not currently ventured to implement a browser-less approach.
-
-Facebook's client-side JavaScript code knows how to retrieve messages from the server. It should be possible to reverse engineer this protocol and do the same thing from a server-side application.
-
-This approach would get the speed advantage of the "hijack first request" approach. It could also be run on a server for convenience.
+Before I made a nice, elegant chrome extension, I had a hacky technique that would allow me to archive my chats. The history of this technique can be found in [primitive_attempts](primitive_attempts).
 
 # The data
 
