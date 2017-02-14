@@ -55,3 +55,7 @@ A message from Facebook's server is a JSON object. Here is an example (with some
   "action_type":"ma-type:user-generated-message"
 }
 ```
+
+# License
+
+This is licensed under the BSD 2-clause license. See [LICENSE](LICENSE).
