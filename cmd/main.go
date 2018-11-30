@@ -70,33 +70,22 @@ func main() {
 
 func promptChat(s *fbmsgr.Session) string {
 	fmt.Println("Listing your chats...")
-	var idx int
-	for {
-		listing, err := s.Threads(idx, 20)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to list threads:", err)
-			os.Exit(1)
+	threads, err := s.AllThreads()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to list threads:", err)
+		os.Exit(1)
+	}
+	for _, thread := range threads {
+		otherNames := []string{}
+		for _, p := range thread.Participants {
+			otherNames = append(otherNames, p.Name)
 		}
-		for _, entry := range listing.Threads {
-			otherNames := []string{}
-			for _, id := range entry.Participants {
-				for _, person := range listing.Participants {
-					if person.FBID == id {
-						otherNames = append(otherNames, person.Name)
-					}
-				}
-			}
-			names := strings.Join(otherNames, ",")
-			if entry.Name == "" {
-				fmt.Println(entry.ThreadFBID, "with", names)
-			} else {
-				fmt.Printf("%s named %s (with %s)\n", entry.ThreadFBID, entry.Name, names)
-			}
+		names := strings.Join(otherNames, ",")
+		if thread.Name == nil {
+			fmt.Println(thread.ThreadFBID, "with", names)
+		} else {
+			fmt.Printf("%s named %s (with %s)\n", thread.ThreadFBID, *thread.Name, names)
 		}
-		if len(listing.Threads) < 20 {
-			break
-		}
-		idx += len(listing.Threads)
 	}
 	fmt.Print("Pick FBID: ")
 	return readLine()
